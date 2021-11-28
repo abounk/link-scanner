@@ -7,9 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 from typing import List
-from urllib import request
-from urllib.request import Request
-from urllib.error import HTTPError, URLError
+import requests
 
 option = Options()
 option.headless = True
@@ -57,12 +55,10 @@ def is_valid_url(url: str):
         Also return False is the URL has invalid syntax.
     """
     try:
-        req = Request(url, method="HEAD")
-        request.urlopen(req)
-    except HTTPError as error:
-        if error.getcode() != 403:
-            return False
-    except URLError:
+        response = requests.head(url)
+    except (requests.ConnectionError, requests.ConnectTimeout):
+        return False
+    if not response.ok:
         return False
     return True
 
@@ -94,8 +90,6 @@ if __name__ == "__main__":
         print(link)
 
     bad_links = invalid_urls(links_from_url)
-    if not bad_links:
-        sys.exit()
     print()
     print("Bad Links:")
     for link in bad_links:
